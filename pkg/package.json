@@ -1,0 +1,12 @@
+{
+  "name": "pagan-holidays-cal-generator",
+  "version": "0.1.0",
+  "files": [
+    "pagan_holidays_cal_generator_bg.wasm",
+    "pagan_holidays_cal_generator.js",
+    "pagan_holidays_cal_generator.d.ts"
+  ],
+  "module": "pagan_holidays_cal_generator.js",
+  "types": "pagan_holidays_cal_generator.d.ts",
+  "sideEffects": false
+}

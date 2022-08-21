@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Pagan Calendar Generator</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="./css/pico.min.css"/>
+    <script defer type="module">
+        import init, {CalendarOptions, make_ics} from './pkg/pagan_holidays_cal_generator.js';
+
+        async function run() {
+            await init();
+
+            document.getElementById('form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                let startYear = Number(document.getElementById('start_year').value);
+                let endYear = Number(document.getElementById('end_year').value);
+
+                if (startYear > endYear) {
+                    alert('Start year must be less than or equal to end year');
+                    return;
+                }
+
+                let quarterDays = [];
+                let crossQuarterDays = [];
+
+                for (let holiday of document.getElementById('holidays').selectedOptions) {
+                    let value = holiday.value;
+                    if (value[0] === 'q') {
+                        quarterDays.push(Number(value[1]));
+                    } else if (value[0] === 'c') {
+                        crossQuarterDays.push(Number(value[1]));
+                    }
+                }
+
+                if (quarterDays.length === 0 && crossQuarterDays.length === 0) {
+                    alert('You must select at least one holiday');
+                    return;
+                }
+
+                let quarterFormat = document.getElementById('quarter_format').value;
+                let crossQuarterFormat = document.getElementById('cross_quarter_format').value;
+
+                let opts = new CalendarOptions('Pagan Holidays', startYear, endYear);
+                opts.quarter_days = new Uint8Array(quarterDays);
+                opts.cross_quarter_days = new Uint8Array(crossQuarterDays);
+                opts.quarter_days_fmt = quarterFormat;
+                opts.cross_quarter_days_fmt = crossQuarterFormat;
+
+                let ics = make_ics(opts);
+
+                opts.free();
+
+                let blob = new Blob([ics], {type: 'text/calendar'});
+                let link = document.createElement('a');
+                link.download = 'pagan-holidays.ics';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+            });
+        }
+
+        run();
+    </script>
+</head>
+<body>
+<main class="container">
+    <h1>Pagan Calendar Generator</h1>
+    <p>
+        This tool will generate an <code>ics</code> file for importing into your favourite calendar.
+    </p>
+
+    <form id="form">
+        <div class="grid">
+            <label>
+                Start year
+                <input id="start_year" required type="number" name="year" min="-1000" max="3000" placeholder="1970"/>
+            </label>
+
+            <label>
+                End year
+                <input id="end_year" required type="number" name="end_year" min="-1000" max="3000" placeholder="2100"/>
+            </label>
+        </div>
+
+        <label>
+            Holidays
+            <select id="holidays" multiple>
+                <optgroup label="Quarter days">
+                    <option selected value="q1">Ostara (March equinox)</option>
+                    <option selected value="q2">Litha (June solstice)</option>
+                    <option selected value="q3">Mabon (September equinox)</option>
+                    <option selected value="q4">Yule (December solstice)</option>
+                </optgroup>
+
+                <optgroup label="Cross-quarter days">
+                    <option selected value="c1">Imbolc</option>
+                    <option selected value="c2">Beltane</option>
+                    <option selected value="c3">Lammas</option>
+                    <option selected value="c4">Samhain</option>
+                </optgroup>
+            </select>
+        </label>
+
+        <details>
+            <summary>Advanced</summary>
+
+            <p>
+                Here you can change the format of the generated event names.
+            </p>
+
+            <dl>
+                <dt><code>{name}</code></dt>
+                <dd>e.g. <code>Summer Solstice</code></dd>
+
+                <dt><code>{pagan_name}</code></dt>
+                <dd>e.g. <code>Litha</code></dd>
+            </dl>
+
+            <div class="grid">
+                <label>
+                    Quarter day format
+                    <input required id="quarter_format" type="text" value="{pagan_name} ({name})"/>
+                </label>
+
+                <label>
+                    Cross-quarter day format (pagan name only)
+                    <input required id="cross_quarter_format" type="text" value="{pagan_name}"/>
+                </label>
+            </div>
+        </details>
+
+        <button type="submit">Download</button>
+    </form>
+</main>
+</body>
+</html>

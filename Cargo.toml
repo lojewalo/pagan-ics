@@ -1,0 +1,19 @@
+[package]
+name = "pagan-holidays-cal-generator"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4"
+equisol = { path = "../equisol", features = ["chrono"] }
+getrandom = { version = "0.2", features = ["js"] }
+icalendar = "0.13"
+wasm-bindgen = "0.2"
+
+[profile.release]
+lto = true
