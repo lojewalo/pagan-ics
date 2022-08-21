@@ -50,6 +50,9 @@ pub struct CalendarOptions {
     pub cross_quarter_days: Vec<CrossQuarterDays>,
     #[wasm_bindgen(skip)]
     pub cross_quarter_days_fmt: String,
+
+    #[wasm_bindgen(skip)]
+    pub custom_names: Vec<Option<String>>,
 }
 
 #[wasm_bindgen]
@@ -65,6 +68,7 @@ impl CalendarOptions {
             quarter_days_fmt: "{pagan_name} ({name})".to_string(),
             cross_quarter_days: vec![CrossQuarterDays::Beltane, CrossQuarterDays::Imbolc, CrossQuarterDays::Lammas, CrossQuarterDays::Samhain],
             cross_quarter_days_fmt: "{pagan_name}".to_string(),
+            custom_names: vec![None, None, None, None, None, None, None, None],
         }
     }
 
@@ -92,12 +96,7 @@ impl CalendarOptions {
     pub fn quarter_days(&self) -> Vec<u8> {
         self.quarter_days
             .iter()
-            .map(|event| match event {
-                SolarEvent::MarchEquinox => 1,
-                SolarEvent::JuneSolstice => 2,
-                SolarEvent::SeptemberEquinox => 3,
-                SolarEvent::DecemberSolstice => 4,
-            })
+            .map(|event| event.index() as u8)
             .collect()
     }
 
@@ -105,13 +104,7 @@ impl CalendarOptions {
     pub fn set_quarter_days(&mut self, quarter_days: Vec<u8>) {
         self.quarter_days = quarter_days
             .iter()
-            .flat_map(|event| match event {
-                1 => Some(SolarEvent::MarchEquinox),
-                2 => Some(SolarEvent::JuneSolstice),
-                3 => Some(SolarEvent::SeptemberEquinox),
-                4 => Some(SolarEvent::DecemberSolstice),
-                _ => None,
-            })
+            .flat_map(|&event| SolarEvent::from_index(event as usize))
             .collect();
     }
 
@@ -129,12 +122,7 @@ impl CalendarOptions {
     pub fn cross_quarter_days(&self) -> Vec<u8> {
         self.cross_quarter_days
             .iter()
-            .map(|event| match event {
-                CrossQuarterDays::Imbolc => 1,
-                CrossQuarterDays::Beltane => 2,
-                CrossQuarterDays::Lammas => 3,
-                CrossQuarterDays::Samhain => 4,
-            })
+            .map(|event| event.index() as u8)
             .collect()
     }
 
@@ -142,13 +130,7 @@ impl CalendarOptions {
     pub fn set_cross_quarter_days(&mut self, cross_quarter_days: Vec<u8>) {
         self.cross_quarter_days = cross_quarter_days
             .iter()
-            .flat_map(|event| match event {
-                1 => Some(CrossQuarterDays::Imbolc),
-                2 => Some(CrossQuarterDays::Beltane),
-                3 => Some(CrossQuarterDays::Lammas),
-                4 => Some(CrossQuarterDays::Samhain),
-                _ => None,
-            })
+            .flat_map(|&event| CrossQuarterDays::from_index(event as usize))
             .collect();
     }
 
@@ -160,6 +142,24 @@ impl CalendarOptions {
     #[wasm_bindgen(setter)]
     pub fn set_cross_quarter_days_fmt(&mut self, cross_quarter_days_fmt: String) {
         self.cross_quarter_days_fmt = cross_quarter_days_fmt;
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn custom_names(&self) -> Box<[JsValue]> {
+        self.custom_names
+            .iter()
+            .cloned()
+            .map(Into::into)
+            .collect::<Vec<_>>()
+            .into_boxed_slice()
+    }
+
+    #[wasm_bindgen(setter)]
+    pub fn set_custom_names(&mut self, custom_names: Box<[JsValue]>) {
+        self.custom_names = custom_names
+            .into_iter()
+            .map(|x| x.as_string())
+            .collect();
     }
 }
 
@@ -175,9 +175,14 @@ fn make_calendar(opts: &CalendarOptions) -> Calendar {
     for year in opts.year_start..=opts.year_end {
         for kind in &opts.quarter_days {
             if let Some(date) = kind.datetime(year) {
+                let pagan_name = opts.custom_names.get(kind.index())
+                    .map(|x| x.as_deref())
+                    .flatten()
+                    .unwrap_or_else(|| kind.pagan_name());
+
                 let name = opts.quarter_days_fmt
                     .replace("{name}", kind.name())
-                    .replace("{pagan_name}", kind.pagan_name());
+                    .replace("{pagan_name}", pagan_name);
 
                 let event = Event::new()
                     .summary(&name)
@@ -190,8 +195,13 @@ fn make_calendar(opts: &CalendarOptions) -> Calendar {
         }
 
         for kind in &opts.cross_quarter_days {
+            let pagan_name = opts.custom_names.get(4 + kind.index())
+                .map(|x| x.as_deref())
+                .flatten()
+                .unwrap_or_else(|| kind.name());
+
             let name = opts.cross_quarter_days_fmt
-                .replace("{pagan_name}", kind.name());
+                .replace("{pagan_name}", pagan_name);
 
             let date = NaiveDate::from_ymd(year as i32, kind.month(), 1);
             let event = Event::new()
@@ -209,4 +219,52 @@ fn make_calendar(opts: &CalendarOptions) -> Calendar {
 #[wasm_bindgen]
 pub fn make_ics(opts: &CalendarOptions) -> String {
     make_calendar(opts).to_string()
+}
+
+trait CustomNameIndex : Sized {
+    fn index(self) -> usize;
+
+    fn from_index(index: usize) -> Option<Self>;
+}
+
+impl CustomNameIndex for SolarEvent {
+    fn index(self) -> usize {
+        match self {
+            SolarEvent::MarchEquinox => 0,
+            SolarEvent::JuneSolstice => 1,
+            SolarEvent::SeptemberEquinox => 2,
+            SolarEvent::DecemberSolstice => 3,
+        }
+    }
+
+    fn from_index(index: usize) -> Option<Self> {
+        match index {
+            0 => Some(SolarEvent::MarchEquinox),
+            1 => Some(SolarEvent::JuneSolstice),
+            2 => Some(SolarEvent::SeptemberEquinox),
+            3 => Some(SolarEvent::DecemberSolstice),
+            _ => None,
+        }
+    }
+}
+
+impl CustomNameIndex for CrossQuarterDays {
+    fn index(self) -> usize {
+        match self {
+            CrossQuarterDays::Imbolc => 0,
+            CrossQuarterDays::Beltane => 1,
+            CrossQuarterDays::Lammas => 2,
+            CrossQuarterDays::Samhain => 3,
+        }
+    }
+
+    fn from_index(index: usize) -> Option<Self> {
+        match index {
+            0 => Some(CrossQuarterDays::Imbolc),
+            1 => Some(CrossQuarterDays::Beltane),
+            2 => Some(CrossQuarterDays::Lammas),
+            3 => Some(CrossQuarterDays::Samhain),
+            _ => None,
+        }
+    }
 }

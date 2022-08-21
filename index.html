@@ -40,11 +40,18 @@
                 let quarterFormat = document.getElementById('quarter_format').value;
                 let crossQuarterFormat = document.getElementById('cross_quarter_format').value;
 
+                let customNames = ['ostara', 'litha', 'mabon', 'yule', 'imbolc', 'beltane', 'lammas', 'samhain'];
+                for (let i = 0; i < customNames.length; i++) {
+                    let name = document.getElementById(`${customNames[i]}_name`).value;
+                    customNames[i] = name === '' ? null : name;
+                }
+
                 let opts = new CalendarOptions('Pagan Holidays', startYear, endYear);
                 opts.quarter_days = new Uint8Array(quarterDays);
                 opts.cross_quarter_days = new Uint8Array(crossQuarterDays);
                 opts.quarter_days_fmt = quarterFormat;
                 opts.cross_quarter_days_fmt = crossQuarterFormat;
+                opts.custom_names = customNames;
 
                 let ics = make_ics(opts);
 
@@ -86,17 +93,17 @@
             Holidays
             <select id="holidays" multiple>
                 <optgroup label="Quarter days">
-                    <option selected value="q1">Ostara (March equinox)</option>
-                    <option selected value="q2">Litha (June solstice)</option>
-                    <option selected value="q3">Mabon (September equinox)</option>
-                    <option selected value="q4">Yule (December solstice)</option>
+                    <option selected value="q0">Ostara (March equinox)</option>
+                    <option selected value="q1">Litha (June solstice)</option>
+                    <option selected value="q2">Mabon (September equinox)</option>
+                    <option selected value="q3">Yule (December solstice)</option>
                 </optgroup>
 
                 <optgroup label="Cross-quarter days">
-                    <option selected value="c1">Imbolc</option>
-                    <option selected value="c2">Beltane</option>
-                    <option selected value="c3">Lammas</option>
-                    <option selected value="c4">Samhain</option>
+                    <option selected value="c0">Imbolc</option>
+                    <option selected value="c1">Beltane</option>
+                    <option selected value="c2">Lammas</option>
+                    <option selected value="c3">Samhain</option>
                 </optgroup>
             </select>
         </label>
@@ -126,6 +133,58 @@
                     Cross-quarter day format (pagan name only)
                     <input required id="cross_quarter_format" type="text" value="{pagan_name}"/>
                 </label>
+            </div>
+
+            <p>
+                Here you can change the names of each holiday, as well.
+            </p>
+
+            <div class="grid">
+                <label>
+                    Ostara
+                    <input id="ostara_name" type="text" placeholder="Ostara"/>
+                </label>
+
+                <label>
+                    Litha
+                    <input id="litha_name" type="text" placeholder="Litha"/>
+                </label>
+
+                <label>
+                    Mabon
+                    <input id="mabon_name" type="text" placeholder="Mabon"/>
+                </label>
+            </div>
+
+            <div class="grid">
+                <label>
+                    Yule
+                    <input id="yule_name" type="text" placeholder="Yule"/>
+                </label>
+
+                <label>
+                    Imbolc
+                    <input id="imbolc_name" type="text" placeholder="Imbolc"/>
+                </label>
+
+                <label>
+                    Beltane
+                    <input id="beltane_name" type="text" placeholder="Beltane"/>
+                </label>
+            </div>
+
+            <div class="grid">
+                <label>
+                    Lammas
+                    <input id="lammas_name" type="text" placeholder="Lammas"/>
+                </label>
+
+                <label>
+                    Samhain
+                    <input id="samhain_name" type="text" placeholder="Samhain"/>
+                </label>
+
+                <div></div>
             </div>
         </details>
 

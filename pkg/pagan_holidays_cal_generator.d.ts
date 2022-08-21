@@ -23,6 +23,9 @@ export class CalendarOptions {
   cross_quarter_days_fmt: string;
 /**
 */
+  custom_names: any[];
+/**
+*/
   description?: string;
 /**
 */
@@ -63,6 +66,8 @@ export interface InitOutput {
   readonly calendaroptions_set_cross_quarter_days: (a: number, b: number, c: number) => void;
   readonly calendaroptions_cross_quarter_days_fmt: (a: number, b: number) => void;
   readonly calendaroptions_set_cross_quarter_days_fmt: (a: number, b: number, c: number) => void;
+  readonly calendaroptions_custom_names: (a: number, b: number) => void;
+  readonly calendaroptions_set_custom_names: (a: number, b: number, c: number) => void;
   readonly make_ics: (a: number, b: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;

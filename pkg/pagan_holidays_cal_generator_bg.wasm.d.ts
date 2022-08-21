@@ -19,6 +19,8 @@ export function calendaroptions_cross_quarter_days(a: number, b: number): void;
 export function calendaroptions_set_cross_quarter_days(a: number, b: number, c: number): void;
 export function calendaroptions_cross_quarter_days_fmt(a: number, b: number): void;
 export function calendaroptions_set_cross_quarter_days_fmt(a: number, b: number, c: number): void;
+export function calendaroptions_custom_names(a: number, b: number): void;
+export function calendaroptions_set_custom_names(a: number, b: number, c: number): void;
 export function make_ics(a: number, b: number): void;
 export function __wbindgen_malloc(a: number): number;
 export function __wbindgen_realloc(a: number, b: number, c: number): number;
