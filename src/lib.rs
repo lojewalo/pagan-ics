@@ -85,7 +85,7 @@ impl CalendarOptions {
 
     #[wasm_bindgen(setter)]
     pub fn set_description(&mut self, description: Option<String>) {
-        self.description = description.map(|x| x.to_string());
+        self.description = description;
     }
 
     #[wasm_bindgen(getter)]
